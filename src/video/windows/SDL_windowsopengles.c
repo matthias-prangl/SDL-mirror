@@ -94,7 +94,6 @@ void
 WIN_GLES_DeleteContext(_THIS, SDL_GLContext context)
 {
     SDL_EGL_DeleteContext(_this, context);
-    WIN_GLES_UnloadLibrary(_this);
 }
 
 SDL_EGL_SwapWindow_impl(WIN)
