@@ -428,6 +428,19 @@ SDL_EGL_LoadLibrary(_THIS, const char *egl_path, NativeDisplayType native_displa
             }
         }
     }
+    //use optimized rendering path for ANGLE D3D11 renderer if supported
+    if(SDL_EGL_HasExtension(_this, SDL_EGL_DISPLAY_EXTENSION, "EGL_ANGLE_platform_angle_d3d")
+        && SDL_EGL_HasExtension(_this, SDL_EGL_DISPLAY_EXTENSION, "EGL_ANGLE_experimental_present_path")) {
+        _this->egl_data->eglGetPlatformDisplayEXT = SDL_EGL_GetProcAddress(_this, "eglGetPlatformDisplayEXT");
+        if (_this->egl_data->eglGetPlatformDisplayEXT) {
+            const EGLint attrib_list[] = {
+                EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_D3D11_ANGLE,
+                EGL_EXPERIMENTAL_PRESENT_PATH_ANGLE, EGL_EXPERIMENTAL_PRESENT_PATH_FAST_ANGLE,
+                EGL_NONE,
+            };
+            _this->egl_data->egl_display = _this->egl_data->eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, (void *)(size_t)native_display, attrib_list);
+        }
+    }
     /* Try the implementation-specific eglGetDisplay even if eglGetPlatformDisplay fails */
     if (_this->egl_data->egl_display == EGL_NO_DISPLAY) {
         _this->egl_data->egl_display = _this->egl_data->eglGetDisplay(native_display);
