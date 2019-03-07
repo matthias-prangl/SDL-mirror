@@ -658,7 +658,7 @@ extern "C" {
 *  that SDL loads a DLL providing the shader compiler.
 *
 *  This variable can be set to the following values:
-*    "d3dcompiler_46.dll" - default, best for Vista or later.
+*    "d3dcompiler_47.dll" - default, best for Vista or later.
 *    "d3dcompiler_43.dll" - for XP support.
 *    "none" - do not load any library, useful if you compiled ANGLE from source and included the compiler in your binaries.
 *
@@ -1013,6 +1013,36 @@ extern "C" {
  *
  */
 #define SDL_HINT_OPENGL_ES_DRIVER   "SDL_OPENGL_ES_DRIVER"
+
+/**
+ *  \brief   A hint controlling which backend ANGLE should use
+ * 
+ *  This hint is ignored on patforms other than Windows.
+ *  
+ *  This hint is checked when loading the EGL Library.
+ * 
+ *  This hint can be set to the following values:
+ *    "d3d11"  - Use DirectX 11 (default)
+ *    "d3d9"   - Use DirectX 9
+ *    "opengl" - Use the OpenGL backend provided by the GPU driver
+ */
+#define SDL_HINT_ANGLE_BACKEND "SDL_ANGLE_BACKEND"
+
+/**
+ *  \brief  A variable controlling if ANGLEs fast path should be used
+ * 
+ *  Translating OpenGL ES to DirectX requires the image to be flipped.
+ *  This takes some time and can be accelerated by using the "fast path".
+ *  According to the ANGLE documentation this setting may break OpenGL ES
+ *  conformance in some corner cases.
+ * 
+ *  This variable is only checked if SDL_HINT_ANGLE_BACKEND is set to "d3d11".
+ *  
+ *  This hint can be set to the following values:
+ *    "0" - Don't use the fast path (default)
+ *    "1" - Use ANGLEs fast path 
+ */
+#define SDL_HINT_ANGLE_FAST_PATH "SDL_ANGLE_FAST_PATH"
 
 /**
  *  \brief  A variable controlling speed/quality tradeoff of audio resampling.

@@ -22,7 +22,7 @@ a recent Chrome/Chromium install for Windows. The files you need are:
     
     * libEGL.dll
     * libGLESv2.dll
-    * d3dcompiler_46.dll (supports Windows Vista or later, better shader compiler)
+    * d3dcompiler_47.dll (supports Windows Vista or later, better shader compiler)
     or...
     * d3dcompiler_43.dll (supports Windows XP or later)
     

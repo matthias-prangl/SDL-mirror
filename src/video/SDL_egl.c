@@ -281,7 +281,7 @@ SDL_EGL_LoadLibrary(_THIS, const char *egl_path, NativeDisplayType native_displa
     d3dcompiler = SDL_GetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER);
     if (!d3dcompiler) {
         if (WIN_IsWindowsVistaOrGreater()) {
-            d3dcompiler = "d3dcompiler_46.dll";
+            d3dcompiler = "d3dcompiler_47.dll";
         } else {
             d3dcompiler = "d3dcompiler_43.dll";
         }
@@ -428,19 +428,37 @@ SDL_EGL_LoadLibrary(_THIS, const char *egl_path, NativeDisplayType native_displa
             }
         }
     }
-    //use optimized rendering path for ANGLE D3D11 renderer if supported
-    if(SDL_EGL_HasExtension(_this, SDL_EGL_DISPLAY_EXTENSION, "EGL_ANGLE_platform_angle_d3d")
-        && SDL_EGL_HasExtension(_this, SDL_EGL_DISPLAY_EXTENSION, "EGL_ANGLE_experimental_present_path")) {
+    
+#if defined(__WINDOWS__)
+    if(SDL_EGL_HasExtension(_this, SDL_EGL_DISPLAY_EXTENSION, "EGL_ANGLE_platform_angle")) {
+        EGLint attrib_list[] = {
+            EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_D3D11_ANGLE,
+            EGL_NONE, EGL_NONE,
+            EGL_NONE
+        };
+        //Select which backend ANGLE should use
+        const char *backend = SDL_GetHint(SDL_HINT_ANGLE_BACKEND);
+        if(!backend || SDL_strcasecmp(backend, "d3d11") == 0) {
+            if(SDL_GetHintBoolean(SDL_HINT_ANGLE_FAST_PATH, SDL_FALSE)) {
+                attrib_list[2] = EGL_EXPERIMENTAL_PRESENT_PATH_ANGLE;
+                attrib_list[3] = EGL_EXPERIMENTAL_PRESENT_PATH_FAST_ANGLE;
+            }
+        } else if (SDL_strcasecmp(backend, "d3d9") == 0) {
+            attrib_list[1] = EGL_PLATFORM_ANGLE_TYPE_D3D9_ANGLE;
+        } else { //OpenGL
+            attrib_list[1] = EGL_PLATFORM_ANGLE_TYPE_OPENGL_ANGLE;
+        }
+
         _this->egl_data->eglGetPlatformDisplayEXT = SDL_EGL_GetProcAddress(_this, "eglGetPlatformDisplayEXT");
-        if (_this->egl_data->eglGetPlatformDisplayEXT) {
-            const EGLint attrib_list[] = {
-                EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_D3D11_ANGLE,
-                EGL_EXPERIMENTAL_PRESENT_PATH_ANGLE, EGL_EXPERIMENTAL_PRESENT_PATH_FAST_ANGLE,
-                EGL_NONE,
-            };
-            _this->egl_data->egl_display = _this->egl_data->eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, (void *)(size_t)native_display, attrib_list);
+        if(_this->egl_data->eglGetPlatformDisplayEXT) {
+            _this->egl_data->egl_display = _this->egl_data->eglGetPlatformDisplayEXT(
+                                                                EGL_PLATFORM_ANGLE_ANGLE, 
+                                                                (void *)(size_t)native_display, 
+                                                                attrib_list);
         }
     }
+
+#endif //defined(__WINDOWS__)
     /* Try the implementation-specific eglGetDisplay even if eglGetPlatformDisplay fails */
     if (_this->egl_data->egl_display == EGL_NO_DISPLAY) {
         _this->egl_data->egl_display = _this->egl_data->eglGetDisplay(native_display);
@@ -452,7 +470,7 @@ SDL_EGL_LoadLibrary(_THIS, const char *egl_path, NativeDisplayType native_displa
     if (_this->egl_data->eglInitialize(_this->egl_data->egl_display, NULL, NULL) != EGL_TRUE) {
         return SDL_SetError("Could not initialize EGL");
     }
-#endif
+#endif //!defined(__WINRT__)
 
     if (path) {
         SDL_strlcpy(_this->gl_config.driver_path, path, sizeof(_this->gl_config.driver_path) - 1);
